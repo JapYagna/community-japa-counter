@@ -1150,12 +1150,25 @@
      * PRIMARY DATA SOURCE: Published CSV (unlimited, Google CDN)
      * Reads ALL data from Summary sheet — total, override, event name, goal, participants, submissions
      * This is the ONLY data source for normal users. Zero Apps Script quota.
+     *
+     * IMPORTANT: Do NOT append query params like &t=... to the published CSV URL!
+     * Google's CDN returns 307 redirects for unknown params, breaking the fetch.
+     * Use cache: 'no-store' header instead to prevent browser caching.
      */
+    let lastOptimisticTime = 0; // timestamp of last optimistic update (post-submit)
+
     async function fetchTotalFromCSV() {
       try {
-        const r = await fetch(CONFIG.SHEET_CSV_URL + '&t=' + Date.now());
-        if (!r.ok) throw new Error('CSV fetch failed');
+        const r = await fetch(CONFIG.SHEET_CSV_URL, { cache: 'no-store' });
+        if (!r.ok) throw new Error('CSV fetch failed: ' + r.status);
         const text = await r.text();
+
+        // Guard: if response looks like HTML (redirect page), bail out
+        if (text.trim().startsWith('<')) {
+          console.warn('CSV returned HTML (likely redirect page), skipping');
+          return cachedData;
+        }
+
         // Parse CSV — clean \r\n line endings from Google Sheets
         const rows = text.trim().replace(/\r/g, '').split('\n').map(row => row.split(',').map(c => c.trim()));
 
@@ -1164,32 +1177,43 @@
         for (const row of rows) {
           const label = (row[0] || '').toLowerCase();
           const val = row[1] || '';
-          if (label.includes('form total'))        formTotal = Number(val) || 0;
-          if (label.includes('admin override'))     override = Number(val) || 0;
-          if (label.includes('event name'))         eventName = val || '';
-          if (label.includes('goal'))               goal = Number(val) || 0;
-          if (label.includes('participants') || label.includes('devotees'))  participants = Number(val) || 0;
-          if (label.includes('total submissions') || label.includes('entries'))  totalSubmissions = Number(val) || 0;
+          if (label.includes('form total')) formTotal = Number(val) || 0;
+          if (label.includes('admin override')) override = Number(val) || 0;
+          if (label.includes('event name')) eventName = val || '';
+          if (label.includes('goal')) goal = Number(val) || 0;
+          if (label.includes('participants') || label.includes('devotees')) participants = Number(val) || 0;
+          if (label.includes('total submissions') || label.includes('entries')) totalSubmissions = Number(val) || 0;
         }
         // Positional fallback (row index)
-        if (formTotal === 0 && rows.length >= 1)      formTotal = Number(rows[0][1]) || 0;
-        if (override === 0 && rows.length >= 2)        override = Number(rows[1][1]) || 0;
-        if (!eventName && rows.length >= 3)            eventName = rows[2][1] || '';
-        if (goal === 0 && rows.length >= 4)            goal = Number(rows[3][1]) || 0;
-        if (participants === 0 && rows.length >= 5)    participants = Number(rows[4][1]) || 0;
+        if (formTotal === 0 && rows.length >= 1) formTotal = Number(rows[0][1]) || 0;
+        if (override === 0 && rows.length >= 2) override = Number(rows[1][1]) || 0;
+        if (!eventName && rows.length >= 3) eventName = rows[2][1] || '';
+        if (goal === 0 && rows.length >= 4) goal = Number(rows[3][1]) || 0;
+        if (participants === 0 && rows.length >= 5) participants = Number(rows[4][1]) || 0;
         if (totalSubmissions === 0 && rows.length >= 6) totalSubmissions = Number(rows[5][1]) || 0;
 
-        const total = Math.max(0, formTotal + override);
+        const csvTotal = Math.max(0, formTotal + override);
+
+        // PROTECT OPTIMISTIC UPDATE: If we just submitted (within last 10s),
+        // don't let a stale CSV response overwrite the optimistic total.
+        // The CSV CDN can be up to 5 min stale, so the old total would
+        // clobber our optimistic update and cause the "jumps up then drops" glitch.
+        const now = Date.now();
+        const isOptimisticWindow = (now - lastOptimisticTime) < 10000;
+        const useTotal = (isOptimisticWindow && cachedData && cachedData.total > csvTotal)
+          ? cachedData.total  // keep optimistic total until CSV catches up
+          : csvTotal;         // CSV is newer or equal, use it
 
         cachedData = {
-          total,
+          total: useTotal,
           formTotal,
           override,
           goal: goal || CONFIG.GOAL,
           eventName: eventName || 'Community Japa',
           participants,
           totalSubmissions,
-          recent: cachedData?.recent || [], // recent stays from local history
+          recent: cachedData?.recent || [],
+          lastUpdated: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         };
         return cachedData;
       } catch (e) {
@@ -1243,6 +1267,17 @@
 
     function getExportURL(code) {
       return CONFIG.APPS_SCRIPT_URL + '?action=exportData&adminCode=' + encodeURIComponent(code);
+    }
+
+    async function adminNukeData(code) {
+      try {
+        const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=nukeData&adminCode=' + encodeURIComponent(code) + '&confirm=yes&t=' + Date.now());
+        return await r.json();
+      } catch (e) { return { error: 'Network error' }; }
+    }
+
+    function getYourTotalOffered() {
+      return getSubmitHistory().reduce((sum, h) => sum + (h.count || 0), 0);
     }
 
     // ============================================================
@@ -1335,9 +1370,9 @@
               <p class="card-header">Community Progress${isLoading ? ' <span class="loading-text">(loading...)</span>' : ''}</p>
               <div class="counter-section">
                 ${isLoading
-                  ? '<span class="counter-value loading-shimmer" style="width:200px;height:60px">&nbsp;</span>'
-                  : `<span class="counter-value" id="total-counter">${formatIndianNumber(data.total)}</span>`
-                }
+          ? '<span class="counter-value loading-shimmer" style="width:200px;height:60px">&nbsp;</span>'
+          : `<span class="counter-value" id="total-counter">${formatIndianNumber(data.total)}</span>`
+        }
                 <span class="counter-target">/ ${formatIndianNumber(data.goal || CONFIG.GOAL)}</span>
               </div>
               <div class="progress-bar">
@@ -1348,6 +1383,7 @@
                 <span class="progress-pct" id="progress-pct">${pct}%</span>
                 <span class="progress-goal">Goal: ${formatIndianNumber(data.goal || CONFIG.GOAL)}</span>
               </div>
+              ${data.lastUpdated ? `<p style="font-size:0.72rem;opacity:0.35;margin-top:8px;font-family:var(--font-sans)">🔄 Last synced: ${data.lastUpdated} &nbsp;·&nbsp; updates every few minutes</p>` : ''}
               ${goalReached ? '<p style="color:var(--color-primary);font-weight:600;margin-top:16px;font-style:italic">🎯 GOAL ACHIEVED! 🎉</p>' : ''}
             </div>
           </div>
@@ -1356,6 +1392,10 @@
             <div class="stat-card"><div class="stat-value" id="stat-total">${isLoading ? '...' : formatIndianNumber(data.total)}</div><div class="stat-label">Total Chants</div></div>
             <div class="stat-card"><div class="stat-value" id="stat-participants">${isLoading ? '...' : (data.participants || 0)}</div><div class="stat-label">Devotees</div></div>
             <div class="stat-card"><div class="stat-value" id="stat-pct">${isLoading ? '...' : pct + '%'}</div><div class="stat-label">Progress</div></div>
+            <div class="stat-card" style="background:linear-gradient(135deg,rgba(255,183,77,0.1),rgba(255,111,0,0.08));border:1px solid rgba(255,183,77,0.2)">
+              <div class="stat-value" style="color:var(--color-primary)">${formatIndianNumber(getYourTotalOffered())}</div>
+              <div class="stat-label">Your Offering ✨</div>
+            </div>
           </div>
 
           <div class="card">
@@ -1473,13 +1513,24 @@
           </div>
         </div>
 
+        <div class="admin-section" style="border:2px solid rgba(255,0,0,0.3);border-radius:12px;padding:16px">
+          <p style="font-family:var(--font-sans);font-size:0.82rem;font-weight:600;margin-bottom:4px;color:var(--color-danger)">☢️ NUKE DATABASE (Danger Zone)</p>
+          <p style="font-family:var(--font-sans);font-size:0.78rem;opacity:0.5;margin-bottom:10px">
+            Permanently deletes ALL form submissions, resets override to 0. Event name & goal are preserved. <strong>CANNOT be undone!</strong>
+          </p>
+          <div class="admin-row">
+            <input type="password" id="inp-admin-nuke-code" placeholder="Admin Secret Code" />
+            <button class="btn btn-sm" id="btn-admin-nuke" style="background:var(--color-danger);color:white;border:none">☢️ Erase Everything</button>
+          </div>
+        </div>
+
         <p id="admin-status" style="font-family:var(--font-sans);font-size:0.82rem;margin-top:12px;opacity:0.6"></p>
       </div>` : ''}
     </main>
 
     <footer class="site-footer">
       <span class="footer-left">Satyam Shivam Sundaram</span>
-      <span class="footer-left">Auto-refreshes every 30s (unlimited reads via Google CDN)</span>
+      <span class="footer-left">Auto-refreshes · Powered by Google Sheets CDN (unlimited reads)</span>
     </footer>
   </div>`;
 
@@ -1556,10 +1607,11 @@
           showToast(`${formatIndianNumber(count)} chants offered! ${q.emoji} — ${getDeityPrefix(q.deity)} ${q.deity} blesses you!`);
 
           // OPTIMISTIC UI: immediately show the updated total (no Apps Script call!)
-          // The next CSV auto-refresh will sync the real number from the sheet
+          // The CSV auto-refresh is protected for 10s to not clobber this value
           if (cachedData) {
             cachedData.total = (cachedData.total || 0) + count;
           }
+          lastOptimisticTime = Date.now(); // protect from stale CSV for 10s
           isSubmitting = false;
           render();
         } else {
@@ -1656,6 +1708,28 @@
         await fetchFullDataFromAppsScript();
         render();
         showToast('Data refreshed! 🔄');
+      });
+
+      // Admin — Nuke Database
+      document.getElementById('btn-admin-nuke')?.addEventListener('click', async () => {
+        const code = document.getElementById('inp-admin-nuke-code')?.value;
+        const status = document.getElementById('admin-status');
+        if (!code) { showToast('Enter admin code', 'error'); return; }
+        // Double confirmation
+        if (!confirm('⚠️ DANGER: This will permanently delete ALL submissions and reset the total to 0. This CANNOT be undone!\n\nAre you absolutely sure?')) return;
+        const typed = prompt('Type "ERASE ALL" to confirm:');
+        if (typed !== 'ERASE ALL') { showToast('Cancelled. You must type exactly "ERASE ALL"', 'error'); return; }
+        if (status) status.textContent = '⏳ Nuking database...';
+        const result = await adminNukeData(code);
+        if (result.error) {
+          if (status) status.textContent = '❌ ' + result.error;
+          showToast(result.error, 'error');
+        } else {
+          if (status) status.textContent = '✅ ' + result.message;
+          showToast('Database erased! ☢️');
+          await fetchFullDataFromAppsScript();
+          render();
+        }
       });
     }
 
