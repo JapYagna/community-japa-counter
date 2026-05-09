@@ -1,570 +1,1152 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Community Japa Counter — Join devotees worldwide in a sacred collective chanting initiative toward 1 Crore!" />
+  <meta name="description"
+    content="Community Japa Counter — Join devotees worldwide in a sacred collective chanting initiative toward 1 Crore!" />
   <meta name="theme-color" content="#FCFAF7" />
   <title>Community Japa Counter 🙏 — Collective Chanting Initiative</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📿</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📿</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<style>
-/* ============================================================
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ============================================================
    🕉️ COMMUNITY JAPA COUNTER — Design System
    Reused from Divine Japa main app
    ============================================================ */
-:root {
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --color-bg: #FCFAF7;
-  --color-text: #2D2D2D;
-  --color-heading: #1a1a1a;
-  --color-primary: #FF9933;
-  --color-primary-dark: #e07e1a;
-  --color-surface1: #F5F2ED;
-  --color-surface2: #EAE7E2;
-  --color-danger: #dc2626;
-  --color-success: #16a34a;
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font-serif);
-  background: var(--color-bg);
-  color: var(--color-text);
-  -webkit-font-smoothing: antialiased;
-  line-height: 1.6;
-  min-height: 100vh;
-}
-body::before {
-  content: ''; position: fixed; top: 0; left: 0; right: 0;
-  height: 3px; background: var(--color-primary); z-index: 9999;
-}
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb { background: var(--color-surface2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
-::selection { background: rgba(255, 153, 51, 0.2); }
+    :root {
+      --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+      --color-bg: #FCFAF7;
+      --color-text: #2D2D2D;
+      --color-heading: #1a1a1a;
+      --color-primary: #FF9933;
+      --color-primary-dark: #e07e1a;
+      --color-surface1: #F5F2ED;
+      --color-surface2: #EAE7E2;
+      --color-danger: #dc2626;
+      --color-success: #16a34a;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-/* Animations */
-.animate-in { animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes shimmerBar { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-@keyframes confetti-fall {
-  0% { transform: translateY(-30px) rotate(0deg) scale(1); opacity: 1; }
-  100% { transform: translateY(100vh) rotate(720deg) scale(0.3); opacity: 0; }
-}
-@keyframes popIn { 0% { transform: scale(0.8); opacity:0; } 100% { transform: scale(1); opacity:1; } }
-@keyframes countPulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-.celebration-particle {
-  position: fixed; top: -30px; font-size: 24px;
-  pointer-events: none; z-index: 9999;
-  animation: confetti-fall ease-out forwards;
-}
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* Navbar */
-.navbar {
-  padding: 28px 24px 16px; display: flex; flex-wrap: wrap; gap: 12px;
-  justify-content: space-between; align-items: flex-end;
-  max-width: 1100px; margin: 0 auto; width: 100%;
-}
-.nav-brand {
-  font-family: var(--font-serif); font-size: 2rem; font-weight: 700;
-  color: var(--color-heading); text-decoration: none; line-height: 1.2; cursor: pointer;
-}
-.nav-brand .brand-accent { color: var(--color-primary); }
-.nav-subtitle {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.2em; opacity: 0.5; margin-top: 4px; font-weight: 500;
-}
+    html {
+      scroll-behavior: smooth;
+    }
 
-/* Main Content */
-.main-content {
-  max-width: 1100px; margin: 0 auto; padding: 24px 24px 60px; width: 100%; flex: 1;
-}
+    body {
+      font-family: var(--font-serif);
+      background: var(--color-bg);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
 
-/* Cards */
-.card {
-  background: white; border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-lg); padding: 32px; position: relative; overflow: hidden;
-}
-.card-surface { background: var(--color-surface1); }
-.card-header {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.15em; font-weight: 700; opacity: 0.55; margin-bottom: 20px;
-}
-.om-watermark {
-  position: absolute; top: -20px; left: -10px; font-size: 160px; font-weight: 700;
-  color: var(--color-primary); opacity: 0.04; user-select: none; pointer-events: none;
-  font-style: italic; line-height: 1;
-}
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--color-primary);
+      z-index: 9999;
+    }
 
-/* Counter */
-.counter-section { margin: 10px 0 20px; }
-.counter-value {
-  font-family: var(--font-serif); font-size: 5rem; font-weight: 700;
-  line-height: 1; letter-spacing: -3px; color: var(--color-heading);
-}
-.counter-target { font-size: 1.5rem; opacity: 0.25; font-style: italic; margin-left: 12px; }
-.counter-label {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.15em; opacity: 0.5; margin-top: 8px;
-}
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
 
-/* Progress */
-.progress-bar {
-  width: 100%; height: 2px; background: var(--color-surface2);
-  position: relative; margin: 24px 0;
-}
-.progress-fill { height: 100%; background: var(--color-primary); transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
-.progress-dot {
-  width: 14px; height: 14px; border-radius: 50%; background: var(--color-primary);
-  box-shadow: 0 2px 10px rgba(255, 153, 51, 0.3);
-  position: absolute; top: -6px; transition: left 1s ease-out;
-}
-.progress-info { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 11px; margin-top: 8px; }
-.progress-pct { color: var(--color-primary); font-weight: 700; }
-.progress-goal { opacity: 0.5; }
+    ::-webkit-scrollbar-track {
+      background: var(--color-bg);
+    }
 
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 14px 28px; border: none; border-radius: var(--radius-sm);
-  font-family: var(--font-sans); font-size: 12px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
-  transition: var(--transition); white-space: nowrap;
-}
-.btn-block { width: 100%; }
-.btn-primary {
-  background: var(--color-primary); color: white;
-  box-shadow: 0 2px 12px rgba(255, 153, 51, 0.25);
-}
-.btn-primary:hover { background: var(--color-primary-dark); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255, 153, 51, 0.35); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-outline { background: white; color: var(--color-text); border: 1px solid var(--color-surface2); }
-.btn-outline:hover { background: var(--color-surface1); border-color: var(--color-primary); }
-.btn-ghost { background: transparent; color: var(--color-text); opacity: 0.5; padding: 8px 14px; }
-.btn-ghost:hover { opacity: 1; color: var(--color-primary); }
-.btn-sm { padding: 8px 14px; font-size: 10px; }
-.btn-lg { padding: 16px 32px; font-size: 13px; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-surface2);
+      border-radius: 4px;
+    }
 
-/* Quick-add buttons grid */
-.quick-add-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-.quick-btn {
-  padding: 18px 8px; border: 2px solid var(--color-surface2); border-radius: var(--radius-sm);
-  background: white; cursor: pointer; transition: var(--transition);
-  text-align: center; font-family: var(--font-sans);
-}
-.quick-btn:hover { border-color: var(--color-primary); background: #FFF7ED; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(255,153,51,0.15); }
-.quick-btn:active { transform: scale(0.96); }
-.quick-btn .qb-num { font-size: 1.6rem; font-weight: 700; color: var(--color-heading); display: block; }
-.quick-btn .qb-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; margin-top: 2px; display: block; }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary);
+    }
 
-/* Custom input row */
-.custom-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.custom-row input {
-  flex: 1; padding: 14px 20px; background: white; border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 1rem;
-  color: var(--color-text); outline: none; transition: var(--transition);
-}
-.custom-row input:focus { border-color: var(--color-primary); }
-.custom-row input::placeholder { color: #aaa; }
+    ::selection {
+      background: rgba(255, 153, 51, 0.2);
+    }
 
-/* Local count display */
-.local-count-card {
-  background: linear-gradient(135deg, #FFF7ED 0%, #FFFBF5 100%);
-  border: 2px solid var(--color-primary); border-radius: var(--radius-lg);
-  padding: 24px; text-align: center; margin-bottom: 20px; position: relative; overflow: hidden;
-}
-.local-count-card::before {
-  content: '📿'; position: absolute; top: 6px; right: 12px; font-size: 28px; opacity: 0.15;
-}
-.local-count-value {
-  font-family: var(--font-serif); font-size: 3rem; font-weight: 700;
-  color: var(--color-primary-dark); line-height: 1;
-}
-.local-count-label {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.15em; opacity: 0.6; margin-top: 6px;
-}
+    /* Animations */
+    .animate-in {
+      animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
 
-/* Name input */
-.name-row {
-  display: flex; gap: 10px; margin-bottom: 16px; align-items: center;
-}
-.name-row input {
-  flex: 1; padding: 10px 16px; background: white; border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 0.88rem;
-  color: var(--color-text); outline: none; transition: var(--transition);
-}
-.name-row input:focus { border-color: var(--color-primary); }
-.name-row label {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.1em; opacity: 0.55; font-weight: 600; white-space: nowrap;
-}
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
 
-/* Quotes */
-.quote-card {
-  background: white; border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-lg); padding: 28px 32px;
-  display: flex; align-items: flex-start; gap: 16px;
-}
-.quote-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 3px; }
-.quote-body { flex: 1; }
-.quote-text { font-family: var(--font-serif); font-style: italic; font-size: 1.08rem; line-height: 1.7; color: var(--color-text); }
-.quote-deity {
-  display: block; font-family: var(--font-sans); font-size: 10px;
-  text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.45; margin-top: 8px; font-weight: 500;
-}
-.warning-card { background: #FFFBF0; border: 1px solid #F5E6CC; }
-.gita-quote {
-  font-style: italic; opacity: 0.45; font-size: 0.92rem;
-  text-align: center; max-width: 550px; margin: 0 auto 16px;
-}
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-/* Recent submissions */
-.recent-list { max-height: 300px; overflow-y: auto; }
-.recent-item {
-  display: flex; justify-content: space-between; align-items: center;
-  border-bottom: 1px solid var(--color-surface2); padding: 10px 0;
-  font-family: var(--font-sans); font-size: 0.88rem;
-}
-.recent-item:last-child { border-bottom: none; }
-.count-cell {
-  font-family: var(--font-sans); font-weight: 700;
-  background: var(--color-surface1); padding: 4px 10px;
-  border-radius: 6px; display: inline-block;
-}
+    @keyframes shimmerBar {
+      0% {
+        background-position: 200% 0;
+      }
 
-/* Stats row */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
-.stat-card {
-  background: var(--color-surface1); border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-md); padding: 20px; text-align: center;
-}
-.stat-value { font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--color-heading); }
-.stat-label {
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase;
-  letter-spacing: 0.1em; opacity: 0.5; margin-top: 4px;
-}
+      100% {
+        background-position: -200% 0;
+      }
+    }
 
-/* Toast */
-.toast {
-  position: fixed; bottom: 24px; right: 24px; padding: 14px 22px;
-  border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 0.88rem;
-  font-weight: 500; z-index: 10000; transform: translateX(120%);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-}
-.toast.show { transform: translateX(0); }
-.toast-success { background: white; color: var(--color-text); border: 1px solid var(--color-primary); }
-.toast-error { background: #fef2f2; color: var(--color-danger); border: 1px solid #fecaca; }
+    @keyframes pulse {
 
-/* Footer */
-.site-footer {
-  max-width: 1100px; margin: 0 auto; padding: 20px 24px 30px; width: 100%;
-  display: flex; justify-content: space-between; align-items: center;
-  font-family: var(--font-sans); font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em;
-}
-.footer-left { opacity: 0.35; }
+      0%,
+      100% {
+        opacity: 1;
+      }
 
-/* Admin panel */
-.admin-panel {
-  background: #FFF7ED; border: 2px dashed var(--color-primary);
-  border-radius: var(--radius-lg); padding: 28px; margin-top: 24px;
-}
-.admin-panel .card-header { color: var(--color-primary-dark); opacity: 1; }
-.admin-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-.admin-row input {
-  flex: 1; min-width: 120px; padding: 10px 16px; border: 1px solid var(--color-surface2);
-  border-radius: var(--radius-sm); font-family: var(--font-sans); font-size: 0.88rem;
-  outline: none;
-}
-.admin-row input:focus { border-color: var(--color-primary); }
+      50% {
+        opacity: 0.5;
+      }
+    }
 
-/* Layout */
-.home-grid { display: grid; gap: 24px; }
-@media (min-width: 768px) { .home-grid-2col { grid-template-columns: 7fr 5fr; } }
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(-30px) rotate(0deg) scale(1);
+        opacity: 1;
+      }
 
-/* Empty */
-.empty-msg { text-align: center; opacity: 0.4; font-style: italic; padding: 20px; font-size: 0.92rem; }
+      100% {
+        transform: translateY(100vh) rotate(720deg) scale(0.3);
+        opacity: 0;
+      }
+    }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .navbar { padding: 20px 16px 12px; }
-  .nav-brand { font-size: 1.5rem; }
-  .main-content { padding: 16px 16px 40px; }
-  .counter-value { font-size: 3.2rem; letter-spacing: -2px; }
-  .counter-target { font-size: 1.1rem; display: block; margin-left: 0; margin-top: 4px; }
-  .card { padding: 24px 20px; }
-  .quote-card { flex-direction: column; gap: 10px; }
-  .stats-row { grid-template-columns: 1fr; }
-  .toast { bottom: 16px; right: 16px; left: 16px; max-width: none; }
-  .local-count-value { font-size: 2.2rem; }
-  .quick-add-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-}
-@media (max-width: 480px) {
-  .counter-value { font-size: 2.5rem; }
-  .quick-btn .qb-num { font-size: 1.2rem; }
-}
-</style>
+    @keyframes popIn {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes countPulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .celebration-particle {
+      position: fixed;
+      top: -30px;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: confetti-fall ease-out forwards;
+    }
+
+    /* Navbar */
+    .navbar {
+      padding: 28px 24px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: flex-end;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .nav-brand {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-heading);
+      text-decoration: none;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+
+    .nav-brand .brand-accent {
+      color: var(--color-primary);
+    }
+
+    .nav-subtitle {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.5;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 24px 60px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Cards */
+    .card {
+      background: white;
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-surface {
+      background: var(--color-surface1);
+    }
+
+    .card-header {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 700;
+      opacity: 0.55;
+      margin-bottom: 20px;
+    }
+
+    .om-watermark {
+      position: absolute;
+      top: -20px;
+      left: -10px;
+      font-size: 160px;
+      font-weight: 700;
+      color: var(--color-primary);
+      opacity: 0.04;
+      user-select: none;
+      pointer-events: none;
+      font-style: italic;
+      line-height: 1;
+    }
+
+    /* Counter */
+    .counter-section {
+      margin: 10px 0 20px;
+    }
+
+    .counter-value {
+      font-family: var(--font-serif);
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -3px;
+      color: var(--color-heading);
+    }
+
+    .counter-target {
+      font-size: 1.5rem;
+      opacity: 0.25;
+      font-style: italic;
+      margin-left: 12px;
+    }
+
+    .counter-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.5;
+      margin-top: 8px;
+    }
+
+    /* Progress */
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background: var(--color-surface2);
+      position: relative;
+      margin: 24px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--color-primary);
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .progress-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      box-shadow: 0 2px 10px rgba(255, 153, 51, 0.3);
+      position: absolute;
+      top: -6px;
+      transition: left 1s ease-out;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .progress-pct {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .progress-goal {
+      opacity: 0.5;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: white;
+      box-shadow: 0 2px 12px rgba(255, 153, 51, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(255, 153, 51, 0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--color-text);
+      border: 1px solid var(--color-surface2);
+    }
+
+    .btn-outline:hover {
+      background: var(--color-surface1);
+      border-color: var(--color-primary);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text);
+      opacity: 0.5;
+      padding: 8px 14px;
+    }
+
+    .btn-ghost:hover {
+      opacity: 1;
+      color: var(--color-primary);
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 10px;
+    }
+
+    .btn-lg {
+      padding: 16px 32px;
+      font-size: 13px;
+    }
+
+    /* Quick-add buttons grid */
+    .quick-add-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .quick-btn {
+      padding: 18px 8px;
+      border: 2px solid var(--color-surface2);
+      border-radius: var(--radius-sm);
+      background: white;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      font-family: var(--font-sans);
+    }
+
+    .quick-btn:hover {
+      border-color: var(--color-primary);
+      background: #FFF7ED;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(255, 153, 51, 0.15);
+    }
+
+    .quick-btn:active {
+      transform: scale(0.96);
+    }
+
+    .quick-btn .qb-num {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-heading);
+      display: block;
+    }
+
+    .quick-btn .qb-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Custom input row */
+    .custom-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .custom-row input {
+      flex: 1;
+      padding: 14px 20px;
+      background: white;
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--color-text);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .custom-row input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .custom-row input::placeholder {
+      color: #aaa;
+    }
+
+    /* Local count display */
+    .local-count-card {
+      background: linear-gradient(135deg, #FFF7ED 0%, #FFFBF5 100%);
+      border: 2px solid var(--color-primary);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .local-count-card::before {
+      content: '📿';
+      position: absolute;
+      top: 6px;
+      right: 12px;
+      font-size: 28px;
+      opacity: 0.15;
+    }
+
+    .local-count-value {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-primary-dark);
+      line-height: 1;
+    }
+
+    .local-count-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.6;
+      margin-top: 6px;
+    }
+
+    /* Name input */
+    .name-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .name-row input {
+      flex: 1;
+      padding: 10px 16px;
+      background: white;
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      color: var(--color-text);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .name-row input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .name-row label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.55;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Quotes */
+    .quote-card {
+      background: white;
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .quote-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .quote-body {
+      flex: 1;
+    }
+
+    .quote-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: var(--color-text);
+    }
+
+    .quote-deity {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.45;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .warning-card {
+      background: #FFFBF0;
+      border: 1px solid #F5E6CC;
+    }
+
+    .gita-quote {
+      font-style: italic;
+      opacity: 0.45;
+      font-size: 0.92rem;
+      text-align: center;
+      max-width: 550px;
+      margin: 0 auto 16px;
+    }
+
+    /* Recent submissions */
+    .recent-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .recent-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--color-surface2);
+      padding: 10px 0;
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+    }
+
+    .recent-item:last-child {
+      border-bottom: none;
+    }
+
+    .count-cell {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      background: var(--color-surface1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: var(--color-surface1);
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-heading);
+    }
+
+    .stat-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      margin-top: 4px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 22px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 500;
+      z-index: 10000;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      max-width: 380px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast-success {
+      background: white;
+      color: var(--color-text);
+      border: 1px solid var(--color-primary);
+    }
+
+    .toast-error {
+      background: #fef2f2;
+      color: var(--color-danger);
+      border: 1px solid #fecaca;
+    }
+
+    /* Footer */
+    .site-footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 24px 30px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-sans);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+    }
+
+    .footer-left {
+      opacity: 0.35;
+    }
+
+    /* Admin panel */
+    .admin-panel {
+      background: #FFF7ED;
+      border: 2px dashed var(--color-primary);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-top: 24px;
+    }
+
+    .admin-panel .card-header {
+      color: var(--color-primary-dark);
+      opacity: 1;
+    }
+
+    .admin-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .admin-row input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 16px;
+      border: 1px solid var(--color-surface2);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .admin-row input:focus {
+      border-color: var(--color-primary);
+    }
+
+    /* Layout */
+    .home-grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    @media (min-width: 768px) {
+      .home-grid-2col {
+        grid-template-columns: 7fr 5fr;
+      }
+    }
+
+    /* Empty */
+    .empty-msg {
+      text-align: center;
+      opacity: 0.4;
+      font-style: italic;
+      padding: 20px;
+      font-size: 0.92rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 20px 16px 12px;
+      }
+
+      .nav-brand {
+        font-size: 1.5rem;
+      }
+
+      .main-content {
+        padding: 16px 16px 40px;
+      }
+
+      .counter-value {
+        font-size: 3.2rem;
+        letter-spacing: -2px;
+      }
+
+      .counter-target {
+        font-size: 1.1rem;
+        display: block;
+        margin-left: 0;
+        margin-top: 4px;
+      }
+
+      .card {
+        padding: 24px 20px;
+      }
+
+      .quote-card {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .toast {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+      }
+
+      .local-count-value {
+        font-size: 2.2rem;
+      }
+
+      .quick-add-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .counter-value {
+        font-size: 2.5rem;
+      }
+
+      .quick-btn .qb-num {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="app"></div>
+  <div id="app"></div>
 
-<script>
-// ============================================================
-// 🕉️ COMMUNITY JAPA COUNTER — GitHub Pages Edition
-// Backend: Google Form (write) + Apps Script (read)
-// ============================================================
+  <script>
+    // ============================================================
+    // 🕉️ COMMUNITY JAPA COUNTER — GitHub Pages Edition
+    // Backend: Google Form (write) + Apps Script (read)
+    // ============================================================
 
-// ============================================================
-// ⚙️ CONFIGURATION — Fill these after Google setup
-// See SETUP.md for instructions
-// ============================================================
-const CONFIG = {
-  // Google Form silent POST URL (replace FORM_ID)
-  GOOGLE_FORM_URL: 'https://docs.google.com/forms/d/e/YOUR_FORM_ID_HERE/formResponse',
+    // ============================================================
+    // ⚙️ CONFIGURATION
+    // ============================================================
+    const CONFIG = {
+      // Google Form silent POST URL
+      GOOGLE_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSc5kGl-QjC3Z9OPuS_eCVniZzvKq_PsHOSk7_-Oq_fvUZmk1A/formResponse',
 
-  // Google Form field entry IDs (get from form prefill URL)
-  ENTRY_NAME: 'entry.YOUR_NAME_FIELD_ID',
-  ENTRY_COUNT: 'entry.YOUR_COUNT_FIELD_ID',
-  ENTRY_TIMESTAMP: 'entry.YOUR_TIMESTAMP_FIELD_ID',
+      // Google Form field entry IDs
+      ENTRY_NAME: 'entry.2119497674',
+      ENTRY_COUNT: 'entry.1493486192',
+      ENTRY_TIMESTAMP: 'entry.520916889',
 
-  // Apps Script web app URL (deployed doGet)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+      // Apps Script web app URL (used for: page load, after submit, admin)
+      APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw0DHtxc7gEKnu-PJgBXPHFc7YmRvMtqp0YhVymM3HMaR9UJYi-P4or7IVm-hFSzJakqA/exec',
 
-  // App settings
-  GOAL: 10000000, // 1 Crore
-  MAX_PER_SUBMIT: 100000, // 1 Lakh max per submission (anti-cheat)
-  REFRESH_INTERVAL: 15000, // 15 seconds
-};
+      // Google Sheets Published CSV URL (used for auto-refresh — UNLIMITED reads via Google CDN)
+      // To get this: In your Google Sheet → File → Share → Publish to web → Summary sheet → CSV → Publish
+      // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/pub?gid=GID&single=true&output=csv
+      SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ8n0czxa7nW9vTTDiKlJodGQVFgL_3yHPFx2Clw3m0Y8XomBxKSM6adNxBkgVG_qwk7l6AYuDxUy7/pub?gid=574306645&single=true&output=csv',
 
-// ============================================================
-// 📿 QUOTES DATA (reused from Divine Japa main app)
-// ============================================================
-const godQuotes = [
-  { text: "Dear child, every chant you do echoes in My universe. I hear each one.", deity: "Krishna", emoji: "💙" },
-  { text: "You think you're chanting My name? Actually, I am calling you closer to Me.", deity: "Krishna", emoji: "🦚" },
-  { text: "That mala you're holding? I blessed every bead before it reached you.", deity: "Krishna", emoji: "📿" },
-  { text: "Wherever you chant, that place becomes Vrindavan to Me.", deity: "Krishna", emoji: "🌸" },
-  { text: "I don't count your chants, dear one. I count the love behind them.", deity: "Krishna", emoji: "💝" },
-  { text: "Every chant you offer plants a seed in eternity's garden. I water them Myself.", deity: "Krishna", emoji: "🌱" },
-  { text: "When you chant in stillness, you sit in My meditation. I protect you always.", deity: "Shiva", emoji: "🔱" },
-  { text: "My third eye sees everything. Right now it sees a beautiful soul doing japa.", deity: "Shiva", emoji: "👁️" },
-  { text: "I am the silence between your chants. In that silence, know that I am always with you.", deity: "Shiva", emoji: "🕉️" },
-  { text: "I walked through forests and crossed oceans — all so that one day, you might call My name.", deity: "Rama", emoji: "🏹" },
-  { text: "Don't worry about perfection. Your effort IS the offering I cherish most.", deity: "Rama", emoji: "🌺" },
-  { text: "Keep chanting. One day you'll realize I was holding your hand all along.", deity: "Hanuman", emoji: "🙏" },
-  { text: "Mountains bow, oceans part — but nothing moves Me like your sincere prayer.", deity: "Hanuman", emoji: "🌊" },
-  { text: "When you chant My name, the whole universe pauses to listen.", deity: "Vishnu", emoji: "🌌" },
-  { text: "I am your Mother. Every time you chant, I wrap you in My divine protection.", deity: "Durga", emoji: "🦁" },
-  { text: "I destroy the darkness so you may chant in the light. Fear nothing, My child.", deity: "Kali", emoji: "🔥" },
-  { text: "True wealth is not gold, dear child. It is the moments you spend in devotion.", deity: "Lakshmi", emoji: "🪷" },
-  { text: "In every chant you speak, I place the rhythm. In every prayer, I guide the words.", deity: "Saraswati", emoji: "🎵" },
-  { text: "I remove the obstacles on your path so your chants may reach the divine unimpeded.", deity: "Ganesh", emoji: "🐘" },
-  { text: "Time is in My hands, but I pause it gladly for one who chants with sincerity.", deity: "Kalbhairav", emoji: "⏳" },
-];
+      // App settings
+      GOAL: 10000000, // 1 Crore
+      MAX_PER_SUBMIT: 100000, // 1 Lakh max per submission (anti-cheat)
+      REFRESH_INTERVAL: 30000, // 30 seconds (reads from free CDN, not Apps Script)
+    };
 
-const gitaQuotes = [
-  "Whatever you do, whatever you eat, whatever you offer — do that as an offering to Me. — BG 9.27 🙏",
-  "For one who has conquered the mind, the mind is the best of friends. — BG 6.6 🧘",
-  "Set thy heart upon thy work, but never on its reward. — BG 2.47 ⚡",
-  "I am the beginning, the middle, and the end of all beings. — BG 10.20 🌟",
-  "Whenever dharma declines, I manifest Myself. — BG 4.7 🌅",
-  "Perform your duties without attachment, and you shall attain the Supreme. — BG 3.19 🕊️",
-  "One who sees Me everywhere and sees everything in Me — I am never lost to them. — BG 6.30 🌺",
-  "A person can rise through the efforts of their own mind. — BG 6.5 🚀",
-];
+    // ============================================================
+    // 📿 QUOTES DATA (reused from Divine Japa main app)
+    // ============================================================
+    const godQuotes = [
+      { text: "Dear child, every chant you do echoes in My universe. I hear each one.", deity: "Krishna", emoji: "💙" },
+      { text: "You think you're chanting My name? Actually, I am calling you closer to Me.", deity: "Krishna", emoji: "🦚" },
+      { text: "That mala you're holding? I blessed every bead before it reached you.", deity: "Krishna", emoji: "📿" },
+      { text: "Wherever you chant, that place becomes Vrindavan to Me.", deity: "Krishna", emoji: "🌸" },
+      { text: "I don't count your chants, dear one. I count the love behind them.", deity: "Krishna", emoji: "💝" },
+      { text: "Every chant you offer plants a seed in eternity's garden. I water them Myself.", deity: "Krishna", emoji: "🌱" },
+      { text: "When you chant in stillness, you sit in My meditation. I protect you always.", deity: "Shiva", emoji: "🔱" },
+      { text: "My third eye sees everything. Right now it sees a beautiful soul doing japa.", deity: "Shiva", emoji: "👁️" },
+      { text: "I am the silence between your chants. In that silence, know that I am always with you.", deity: "Shiva", emoji: "🕉️" },
+      { text: "I walked through forests and crossed oceans — all so that one day, you might call My name.", deity: "Rama", emoji: "🏹" },
+      { text: "Don't worry about perfection. Your effort IS the offering I cherish most.", deity: "Rama", emoji: "🌺" },
+      { text: "Keep chanting. One day you'll realize I was holding your hand all along.", deity: "Hanuman", emoji: "🙏" },
+      { text: "Mountains bow, oceans part — but nothing moves Me like your sincere prayer.", deity: "Hanuman", emoji: "🌊" },
+      { text: "When you chant My name, the whole universe pauses to listen.", deity: "Vishnu", emoji: "🌌" },
+      { text: "I am your Mother. Every time you chant, I wrap you in My divine protection.", deity: "Durga", emoji: "🦁" },
+      { text: "I destroy the darkness so you may chant in the light. Fear nothing, My child.", deity: "Kali", emoji: "🔥" },
+      { text: "True wealth is not gold, dear child. It is the moments you spend in devotion.", deity: "Lakshmi", emoji: "🪷" },
+      { text: "In every chant you speak, I place the rhythm. In every prayer, I guide the words.", deity: "Saraswati", emoji: "🎵" },
+      { text: "I remove the obstacles on your path so your chants may reach the divine unimpeded.", deity: "Ganesh", emoji: "🐘" },
+      { text: "Time is in My hands, but I pause it gladly for one who chants with sincerity.", deity: "Kalbhairav", emoji: "⏳" },
+    ];
 
-const funnyWarnings = [
-  "🕉️ Don't add wrong count... Rama is watching you with love! 👀",
-  "Hanuman ji is cross-checking your count right now... 🐒",
-  "Lord Krishna played the flute, not the numbers. Be truthful! 🎶",
-  "Your chants go to the divine server. No VPN can hide wrong counts! 🌐",
-  "Reminder: Gods have unlimited RAM. They remember EVERYTHING! 🧠",
-  "This count goes on your cosmic credit score. No pressure! ⭐",
-  "Karma has no deadline. But honesty has instant rewards! ✨",
-  "Dear devotee, the celestial accountants are watching. No creative accounting! 🧮",
-  "If in doubt, chant more! Better than fake counting. Double the benefit! 📿",
-  "Your count is being audited by the Cosmic CA firm — Brahma, Vishnu & Associates! 💼",
-];
+    const gitaQuotes = [
+      "Whatever you do, whatever you eat, whatever you offer — do that as an offering to Me. — BG 9.27 🙏",
+      "For one who has conquered the mind, the mind is the best of friends. — BG 6.6 🧘",
+      "Set thy heart upon thy work, but never on its reward. — BG 2.47 ⚡",
+      "I am the beginning, the middle, and the end of all beings. — BG 10.20 🌟",
+      "Whenever dharma declines, I manifest Myself. — BG 4.7 🌅",
+      "Perform your duties without attachment, and you shall attain the Supreme. — BG 3.19 🕊️",
+      "One who sees Me everywhere and sees everything in Me — I am never lost to them. — BG 6.30 🌺",
+      "A person can rise through the efforts of their own mind. — BG 6.5 🚀",
+    ];
 
-const milestoneMessages = {
-  1000: "1,000 chants! The journey of a crore begins with a single bead! 📿",
-  10000: "10,000 chants! The divine vibrations are getting stronger! 🌊",
-  100000: "1 LAKH chants! The heavens are rejoicing right now! 🎉",
-  500000: "5 LAKH! Half a million prayers echoing through the cosmos! 🌌",
-  1000000: "10 LAKH! One million chants! Indra himself is impressed! ⚡",
-  2500000: "25 LAKH! A quarter of the way to 1 Crore! Jai Ho! 🏆",
-  5000000: "50 LAKH! HALFWAY THERE! The dharma is UNSTOPPABLE! 🔥🔥",
-  7500000: "75 LAKH! Three-quarters done! Victory is within sight! 🏁",
-  10000000: "🎯 1 CRORE CHANTS ACHIEVED! JAI SHRI RAM! JAI SHRI KRISHNA! 🏆✨🎉",
-};
+    const funnyWarnings = [
+      "🕉️ Don't add wrong count... Rama is watching you with love! 👀",
+      "Hanuman ji is cross-checking your count right now... 🐒",
+      "Lord Krishna played the flute, not the numbers. Be truthful! 🎶",
+      "Your chants go to the divine server. No VPN can hide wrong counts! 🌐",
+      "Reminder: Gods have unlimited RAM. They remember EVERYTHING! 🧠",
+      "This count goes on your cosmic credit score. No pressure! ⭐",
+      "Karma has no deadline. But honesty has instant rewards! ✨",
+      "Dear devotee, the celestial accountants are watching. No creative accounting! 🧮",
+      "If in doubt, chant more! Better than fake counting. Double the benefit! 📿",
+      "Your count is being audited by the Cosmic CA firm — Brahma, Vishnu & Associates! 💼",
+    ];
 
-// ============================================================
-// HELPERS
-// ============================================================
-const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const milestoneMessages = {
+      1000: "1,000 chants! The journey of a crore begins with a single bead! 📿",
+      10000: "10,000 chants! The divine vibrations are getting stronger! 🌊",
+      100000: "1 LAKH chants! The heavens are rejoicing right now! 🎉",
+      500000: "5 LAKH! Half a million prayers echoing through the cosmos! 🌌",
+      1000000: "10 LAKH! One million chants! Indra himself is impressed! ⚡",
+      2500000: "25 LAKH! A quarter of the way to 1 Crore! Jai Ho! 🏆",
+      5000000: "50 LAKH! HALFWAY THERE! The dharma is UNSTOPPABLE! 🔥🔥",
+      7500000: "75 LAKH! Three-quarters done! Victory is within sight! 🏁",
+      10000000: "🎯 1 CRORE CHANTS ACHIEVED! JAI SHRI RAM! JAI SHRI KRISHNA! 🏆✨🎉",
+    };
 
-function formatIndianNumber(num) {
-  if (num == null || isNaN(num)) return '0';
-  num = Math.floor(num); if (num < 1000) return num.toString();
-  let s = num.toString(), last3 = s.slice(-3), rest = s.slice(0, -3), result = ',' + last3;
-  while (rest.length > 2) { result = ',' + rest.slice(-2) + result; rest = rest.slice(0, -2); }
-  return rest + result;
-}
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-function getTimeGreeting() {
-  const h = new Date().getHours();
-  if (h < 5)  return { greeting: "Om Namah Shivaya!", sub: "The Brahma Muhurta hour — most auspicious for Japa! 🌙" };
-  if (h < 8)  return { greeting: "Shubh Prabhat!", sub: "Morning devotion fills the day with divine energy! 🌅" };
-  if (h < 12) return { greeting: "Hari Om!", sub: "May your morning be as bright as Surya Dev! ☀️" };
-  if (h < 15) return { greeting: "Radhe Radhe!", sub: "Afternoon japa — the dedication of a true devotee! 🌞" };
-  if (h < 18) return { greeting: "Jai Shri Krishna!", sub: "The golden hour — perfect for connecting with the divine! 🌆" };
-  if (h < 21) return { greeting: "Har Har Mahadev!", sub: "Evening sandhya — the twilight of devotion! 🌇" };
-  return { greeting: "Om Namo Narayanaya!", sub: "Late night Japa carries special blessings! 🌙✨" };
-}
+    function formatIndianNumber(num) {
+      if (num == null || isNaN(num)) return '0';
+      num = Math.floor(num); if (num < 1000) return num.toString();
+      let s = num.toString(), last3 = s.slice(-3), rest = s.slice(0, -3), result = ',' + last3;
+      while (rest.length > 2) { result = ',' + rest.slice(-2) + result; rest = rest.slice(0, -2); }
+      return rest + result;
+    }
 
-function getDeityPrefix(deity) {
-  return ['Durga','Kali','Lakshmi','Saraswati','Parvati'].includes(deity) ? 'Maa' : 'Lord';
-}
+    function getTimeGreeting() {
+      const h = new Date().getHours();
+      if (h < 5) return { greeting: "Om Namah Shivaya!", sub: "The Brahma Muhurta hour — most auspicious for Japa! 🌙" };
+      if (h < 8) return { greeting: "Shubh Prabhat!", sub: "Morning devotion fills the day with divine energy! 🌅" };
+      if (h < 12) return { greeting: "Hari Om!", sub: "May your morning be as bright as Surya Dev! ☀️" };
+      if (h < 15) return { greeting: "Radhe Radhe!", sub: "Afternoon japa — the dedication of a true devotee! 🌞" };
+      if (h < 18) return { greeting: "Jai Shri Krishna!", sub: "The golden hour — perfect for connecting with the divine! 🌆" };
+      if (h < 21) return { greeting: "Har Har Mahadev!", sub: "Evening sandhya — the twilight of devotion! 🌇" };
+      return { greeting: "Om Namo Narayanaya!", sub: "Late night Japa carries special blessings! 🌙✨" };
+    }
 
-function showToast(msg, type = 'success') {
-  document.querySelector('.toast')?.remove();
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.innerHTML = `<span>${msg}</span>`;
-  document.body.appendChild(t);
-  requestAnimationFrame(() => t.classList.add('show'));
-  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
-}
+    function getDeityPrefix(deity) {
+      return ['Durga', 'Kali', 'Lakshmi', 'Saraswati', 'Parvati'].includes(deity) ? 'Maa' : 'Lord';
+    }
 
-function triggerCelebration() {
-  const items = ['🎉', '🎊', '✨', '🌟', '🏆', '🪷', '🕉'];
-  for (let i = 0; i < 35; i++) {
-    const p = document.createElement('span');
-    p.className = 'celebration-particle';
-    p.textContent = items[Math.floor(Math.random() * items.length)];
-    p.style.left = Math.random() * 100 + '%';
-    p.style.animationDuration = (2.5 + Math.random() * 3) + 's';
-    p.style.animationDelay = Math.random() * 2 + 's';
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 6000);
-  }
-}
+    function showToast(msg, type = 'success') {
+      document.querySelector('.toast')?.remove();
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.innerHTML = `<span>${msg}</span>`;
+      document.body.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+    }
 
-function animateCounter(el, target, duration = 1200) {
-  const start = parseInt(el.textContent.replace(/,/g, '')) || 0;
-  if (start === target) return;
-  const diff = target - start, t0 = performance.now();
-  (function tick(now) {
-    const p = Math.min((now - t0) / duration, 1);
-    el.textContent = formatIndianNumber(Math.round(start + diff * (1 - Math.pow(1 - p, 3))));
-    if (p < 1) requestAnimationFrame(tick);
-  })(performance.now());
-}
+    function triggerCelebration() {
+      const items = ['🎉', '🎊', '✨', '🌟', '🏆', '🪷', '🕉'];
+      for (let i = 0; i < 35; i++) {
+        const p = document.createElement('span');
+        p.className = 'celebration-particle';
+        p.textContent = items[Math.floor(Math.random() * items.length)];
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+        p.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 6000);
+      }
+    }
 
-// ============================================================
-// LOCAL STORAGE
-// ============================================================
-const STORE = {
-  LOCAL_COUNT: 'communityJapa_localCount',
-  USER_NAME: 'communityJapa_userName',
-  SUBMIT_HISTORY: 'communityJapa_submitHistory',
-};
+    function animateCounter(el, target, duration = 1200) {
+      const start = parseInt(el.textContent.replace(/,/g, '')) || 0;
+      if (start === target) return;
+      const diff = target - start, t0 = performance.now();
+      (function tick(now) {
+        const p = Math.min((now - t0) / duration, 1);
+        el.textContent = formatIndianNumber(Math.round(start + diff * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      })(performance.now());
+    }
 
-function getLocalCount() { return parseInt(localStorage.getItem(STORE.LOCAL_COUNT)) || 0; }
-function setLocalCount(v) { localStorage.setItem(STORE.LOCAL_COUNT, v.toString()); }
-function getUserName() { return localStorage.getItem(STORE.USER_NAME) || ''; }
-function setUserName(n) { localStorage.setItem(STORE.USER_NAME, n); }
-function getSubmitHistory() { try { return JSON.parse(localStorage.getItem(STORE.SUBMIT_HISTORY)) || []; } catch(_) { return []; } }
-function addSubmitHistory(entry) {
-  const h = getSubmitHistory();
-  h.unshift(entry);
-  if (h.length > 20) h.length = 20;
-  localStorage.setItem(STORE.SUBMIT_HISTORY, JSON.stringify(h));
-}
+    // ============================================================
+    // LOCAL STORAGE
+    // ============================================================
+    const STORE = {
+      LOCAL_COUNT: 'communityJapa_localCount',
+      USER_NAME: 'communityJapa_userName',
+      SUBMIT_HISTORY: 'communityJapa_submitHistory',
+    };
 
-// ============================================================
-// GOOGLE FORM SILENT SUBMIT
-// ============================================================
-async function submitToGoogleForm(name, count) {
-  const formData = new FormData();
-  formData.append(CONFIG.ENTRY_NAME, name || 'Sadhak');
-  formData.append(CONFIG.ENTRY_COUNT, count.toString());
-  formData.append(CONFIG.ENTRY_TIMESTAMP, new Date().toISOString());
+    function getLocalCount() { return parseInt(localStorage.getItem(STORE.LOCAL_COUNT)) || 0; }
+    function setLocalCount(v) { localStorage.setItem(STORE.LOCAL_COUNT, v.toString()); }
+    function getUserName() { return localStorage.getItem(STORE.USER_NAME) || ''; }
+    function setUserName(n) { localStorage.setItem(STORE.USER_NAME, n); }
+    function getSubmitHistory() { try { return JSON.parse(localStorage.getItem(STORE.SUBMIT_HISTORY)) || []; } catch (_) { return []; } }
+    function addSubmitHistory(entry) {
+      const h = getSubmitHistory();
+      h.unshift(entry);
+      if (h.length > 20) h.length = 20;
+      localStorage.setItem(STORE.SUBMIT_HISTORY, JSON.stringify(h));
+    }
 
-  try {
-    // mode: 'no-cors' — Google won't return CORS headers,
-    // but the submission still goes through successfully
-    await fetch(CONFIG.GOOGLE_FORM_URL, {
-      method: 'POST',
-      body: formData,
-      mode: 'no-cors',
-    });
-    return true;
-  } catch (e) {
-    console.error('Form submit error:', e);
-    return false;
-  }
-}
+    // ============================================================
+    // GOOGLE FORM SILENT SUBMIT
+    // ============================================================
+    async function submitToGoogleForm(name, count) {
+      const formData = new FormData();
+      formData.append(CONFIG.ENTRY_NAME, name || 'Sadhak');
+      formData.append(CONFIG.ENTRY_COUNT, count.toString());
+      formData.append(CONFIG.ENTRY_TIMESTAMP, new Date().toISOString());
 
-// ============================================================
-// APPS SCRIPT READ
-// ============================================================
-let cachedData = null;
+      try {
+        // mode: 'no-cors' — Google won't return CORS headers,
+        // but the submission still goes through successfully
+        await fetch(CONFIG.GOOGLE_FORM_URL, {
+          method: 'POST',
+          body: formData,
+          mode: 'no-cors',
+        });
+        return true;
+      } catch (e) {
+        console.error('Form submit error:', e);
+        return false;
+      }
+    }
 
-async function fetchCommunityData() {
-  try {
-    const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getData&t=' + Date.now());
-    if (!r.ok) throw new Error('Apps Script fetch failed');
-    const data = await r.json();
-    cachedData = data;
-    return data;
-  } catch (e) {
-    console.error('Fetch community data error:', e);
-    return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
-  }
-}
+    // ============================================================
+    // DATA FETCHING — Hybrid strategy for unlimited scale
+    //
+    // QUOTA-PROOF DESIGN:
+    //   Auto-refresh (every 30s) → Google Sheets Published CSV (Google CDN, UNLIMITED)
+    //   Page load & after submit → Apps Script (full data with recent list)
+    //   Admin operations → Apps Script (rare, admin-only)
+    //
+    // With 150K users refreshing every 30s:
+    //   CSV reads: unlimited (Google CDN, not counted as API calls)
+    //   Apps Script: ~150K calls on page load + ~few K after submits = well within 20K-50K/day
+    //               (most users load once, submit 1-3 times, done)
+    // ============================================================
+    let cachedData = null;
 
-async function adminSetTotal(code, total) {
-  try {
-    const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=setTotal&adminCode=' + encodeURIComponent(code) + '&total=' + total + '&t=' + Date.now());
-    const data = await r.json();
-    return data;
-  } catch (e) {
-    console.error('Admin set total error:', e);
-    return { error: 'Network error' };
-  }
-}
+    /**
+     * LIGHTWEIGHT: Read total from published CSV (unlimited, Google CDN)
+     * Only gets the total + override — no Apps Script quota used!
+     */
+    async function fetchTotalFromCSV() {
+      try {
+        const r = await fetch(CONFIG.SHEET_CSV_URL + '&t=' + Date.now());
+        if (!r.ok) throw new Error('CSV fetch failed');
+        const text = await r.text();
+        // Parse CSV: Row 1 = headers (A,B), Row 2 = Form Total + value, Row 3 = Admin Override + value
+        const rows = text.trim().split('\n').map(row => row.split(','));
+        let formTotal = 0, override = 0;
+        for (const row of rows) {
+          if (row[0] && row[0].trim().toLowerCase().includes('form total')) formTotal = Number(row[1]) || 0;
+          if (row[0] && row[0].trim().toLowerCase().includes('admin override')) override = Number(row[1]) || 0;
+        }
+        // If we couldn't parse labels, try positional: B1 = total, B2 = override
+        if (formTotal === 0 && rows.length >= 1) formTotal = Number(rows[0][1]) || 0;
+        if (override === 0 && rows.length >= 2) override = Number(rows[1][1]) || 0;
+        const total = Math.max(0, formTotal + override);
+        // Merge with cached data (keep recent list and participants from last Apps Script call)
+        if (cachedData) {
+          cachedData.total = total;
+        } else {
+          cachedData = { total, goal: CONFIG.GOAL, recent: [], participants: 0 };
+        }
+        return cachedData;
+      } catch (e) {
+        console.error('CSV fetch error:', e);
+        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
+      }
+    }
 
-// ============================================================
-// RENDER APP
-// ============================================================
-let refreshTimer = null;
-const isAdmin = new URLSearchParams(window.location.search).has('admin');
-const app = document.getElementById('app');
+    /**
+     * FULL: Read all data from Apps Script (total + recent + participants)
+     * Used on page load and after submit — consumes Apps Script quota
+     */
+    async function fetchFullDataFromAppsScript() {
+      try {
+        const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getData&t=' + Date.now());
+        if (!r.ok) throw new Error('Apps Script fetch failed');
+        const data = await r.json();
+        cachedData = data;
+        return data;
+      } catch (e) {
+        console.error('Apps Script fetch error:', e);
+        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
+      }
+    }
 
-function render() {
-  const localCount = getLocalCount();
-  const gita = rand(gitaQuotes);
-  const god = rand(godQuotes);
-  const warning = rand(funnyWarnings);
-  const timeG = getTimeGreeting();
-  const data = cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
-  const pct = Math.min(Math.round((data.total / data.goal) * 100), 100);
-  const goalReached = data.total >= data.goal;
-  const userName = getUserName();
+    async function adminSetTotal(code, total) {
+      try {
+        const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=setTotal&adminCode=' + encodeURIComponent(code) + '&total=' + total + '&t=' + Date.now());
+        const data = await r.json();
+        return data;
+      } catch (e) {
+        console.error('Admin set total error:', e);
+        return { error: 'Network error' };
+      }
+    }
 
-  app.innerHTML = `<div class="animate-in">
+    // ============================================================
+    // RENDER APP
+    // ============================================================
+    let refreshTimer = null;
+    const isAdmin = new URLSearchParams(window.location.search).has('admin');
+    const app = document.getElementById('app');
+
+    function render() {
+      const localCount = getLocalCount();
+      const gita = rand(gitaQuotes);
+      const god = rand(godQuotes);
+      const warning = rand(funnyWarnings);
+      const timeG = getTimeGreeting();
+      const data = cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
+      const pct = Math.min(Math.round((data.total / data.goal) * 100), 100);
+      const goalReached = data.total >= data.goal;
+      const userName = getUserName();
+
+      app.innerHTML = `<div class="animate-in">
     <nav class="navbar">
       <div>
         <div class="nav-brand">Community <span class="brand-accent">Japa</span></div>
@@ -710,173 +1292,179 @@ function render() {
 
     <footer class="site-footer">
       <span class="footer-left">Satyam Shivam Sundaram</span>
-      <span class="footer-left">Auto-refreshes every 15s</span>
+      <span class="footer-left">Auto-refreshes every 30s (unlimited reads via Google CDN)</span>
     </footer>
   </div>`;
 
-  attachListeners();
-}
+      attachListeners();
+    }
 
-// ============================================================
-// EVENT LISTENERS
-// ============================================================
-function attachListeners() {
-  const addToLocal = (n) => {
-    const current = getLocalCount();
-    const newVal = current + n;
-    setLocalCount(newVal);
-    updateLocalUI(newVal);
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    function attachListeners() {
+      const addToLocal = (n) => {
+        const current = getLocalCount();
+        const newVal = current + n;
+        setLocalCount(newVal);
+        updateLocalUI(newVal);
 
-    // Pulse animation
-    const el = document.getElementById('local-count');
-    if (el) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'countPulse 0.3s ease'; }
+        // Pulse animation
+        const el = document.getElementById('local-count');
+        if (el) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'countPulse 0.3s ease'; }
 
-    // Check milestones
-    for (const [threshold, msg] of Object.entries(milestoneMessages)) {
-      if (current < Number(threshold) && newVal >= Number(threshold)) {
-        showToast(msg); triggerCelebration(); break;
+        // Check milestones
+        for (const [threshold, msg] of Object.entries(milestoneMessages)) {
+          if (current < Number(threshold) && newVal >= Number(threshold)) {
+            showToast(msg); triggerCelebration(); break;
+          }
+        }
+      };
+
+      document.getElementById('btn-108')?.addEventListener('click', () => addToLocal(108));
+      document.getElementById('btn-54')?.addEventListener('click', () => addToLocal(54));
+      document.getElementById('btn-27')?.addEventListener('click', () => addToLocal(27));
+
+      document.getElementById('btn-add-custom')?.addEventListener('click', () => {
+        const inp = document.getElementById('inp-custom');
+        const v = parseInt(inp.value);
+        if (!v || v <= 0) { showToast('Enter a valid number 🙏', 'error'); return; }
+        if (v > CONFIG.MAX_PER_SUBMIT) { showToast(`Maximum ${formatIndianNumber(CONFIG.MAX_PER_SUBMIT)} per entry! 😄`, 'error'); return; }
+        addToLocal(v);
+        inp.value = '';
+      });
+
+      // Enter key on custom input
+      document.getElementById('inp-custom')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-add-custom')?.click(); }
+      });
+
+      // Save name on change
+      document.getElementById('inp-name')?.addEventListener('input', (e) => {
+        setUserName(e.target.value.trim());
+      });
+
+      // Submit
+      document.getElementById('btn-submit')?.addEventListener('click', async () => {
+        const count = getLocalCount();
+        if (count <= 0) { showToast('Add some chants first! 📿', 'error'); return; }
+        if (count > CONFIG.MAX_PER_SUBMIT) { showToast(`Maximum ${formatIndianNumber(CONFIG.MAX_PER_SUBMIT)} per submission!`, 'error'); return; }
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true; btn.textContent = '🙏 Offering to the Divine...';
+
+        const name = getUserName() || 'Sadhak';
+        const ok = await submitToGoogleForm(name, count);
+
+        if (ok) {
+          addSubmitHistory({ count, time: new Date().toLocaleString('en-IN'), name });
+          setLocalCount(0);
+          triggerCelebration();
+          const q = rand(godQuotes);
+          showToast(`${formatIndianNumber(count)} chants offered! ${q.emoji} — ${getDeityPrefix(q.deity)} ${q.deity} blesses you!`);
+
+          // Wait a moment then refresh full data from Apps Script (gets recent list)
+          setTimeout(async () => {
+            await fetchFullDataFromAppsScript();
+            render();
+          }, 3000);
+        } else {
+          showToast('Submission may have failed. Try again? 🙏', 'error');
+          btn.disabled = false; btn.textContent = `🙏 Submit My Count (${formatIndianNumber(count)})`;
+        }
+      });
+
+      // Reset
+      document.getElementById('btn-reset')?.addEventListener('click', () => {
+        if (confirm('Reset your accumulated local count to 0?')) {
+          setLocalCount(0);
+          updateLocalUI(0);
+          showToast('Local count reset! 🔄');
+        }
+      });
+
+      // Admin
+      document.getElementById('btn-admin-set')?.addEventListener('click', async () => {
+        const code = document.getElementById('inp-admin-code')?.value;
+        const total = parseInt(document.getElementById('inp-admin-total')?.value);
+        const status = document.getElementById('admin-status');
+        if (!code) { showToast('Enter admin code', 'error'); return; }
+        if (isNaN(total) || total < 0) { showToast('Enter valid total', 'error'); return; }
+        if (status) status.textContent = 'Sending...';
+        const result = await adminSetTotal(code, total);
+        if (result.error) {
+          if (status) status.textContent = '❌ ' + result.error;
+          showToast(result.error, 'error');
+        } else {
+          if (status) status.textContent = '✅ Total updated to ' + formatIndianNumber(total);
+          showToast('Total updated! 🙏');
+          await fetchCommunityData();
+          render();
+        }
+      });
+    }
+
+    function updateLocalUI(count) {
+      const el = document.getElementById('local-count');
+      if (el) el.textContent = formatIndianNumber(count);
+      const btn = document.getElementById('btn-submit');
+      if (btn) {
+        btn.disabled = count === 0;
+        btn.textContent = `🙏 Submit My Count (${formatIndianNumber(count)})`;
       }
+      const resetBtn = document.getElementById('btn-reset');
+      if (resetBtn) resetBtn.style.display = count === 0 ? 'none' : '';
     }
-  };
 
-  document.getElementById('btn-108')?.addEventListener('click', () => addToLocal(108));
-  document.getElementById('btn-54')?.addEventListener('click', () => addToLocal(54));
-  document.getElementById('btn-27')?.addEventListener('click', () => addToLocal(27));
-
-  document.getElementById('btn-add-custom')?.addEventListener('click', () => {
-    const inp = document.getElementById('inp-custom');
-    const v = parseInt(inp.value);
-    if (!v || v <= 0) { showToast('Enter a valid number 🙏', 'error'); return; }
-    if (v > CONFIG.MAX_PER_SUBMIT) { showToast(`Maximum ${formatIndianNumber(CONFIG.MAX_PER_SUBMIT)} per entry! 😄`, 'error'); return; }
-    addToLocal(v);
-    inp.value = '';
-  });
-
-  // Enter key on custom input
-  document.getElementById('inp-custom')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-add-custom')?.click(); }
-  });
-
-  // Save name on change
-  document.getElementById('inp-name')?.addEventListener('input', (e) => {
-    setUserName(e.target.value.trim());
-  });
-
-  // Submit
-  document.getElementById('btn-submit')?.addEventListener('click', async () => {
-    const count = getLocalCount();
-    if (count <= 0) { showToast('Add some chants first! 📿', 'error'); return; }
-    if (count > CONFIG.MAX_PER_SUBMIT) { showToast(`Maximum ${formatIndianNumber(CONFIG.MAX_PER_SUBMIT)} per submission!`, 'error'); return; }
-
-    const btn = document.getElementById('btn-submit');
-    btn.disabled = true; btn.textContent = '🙏 Offering to the Divine...';
-
-    const name = getUserName() || 'Sadhak';
-    const ok = await submitToGoogleForm(name, count);
-
-    if (ok) {
-      addSubmitHistory({ count, time: new Date().toLocaleString('en-IN'), name });
-      setLocalCount(0);
-      triggerCelebration();
-      const q = rand(godQuotes);
-      showToast(`${formatIndianNumber(count)} chants offered! ${q.emoji} — ${getDeityPrefix(q.deity)} ${q.deity} blesses you!`);
-
-      // Wait a moment then refresh data from server
-      setTimeout(async () => {
-        await fetchCommunityData();
-        render();
-      }, 2000);
-    } else {
-      showToast('Submission may have failed. Try again? 🙏', 'error');
-      btn.disabled = false; btn.textContent = `🙏 Submit My Count (${formatIndianNumber(count)})`;
+    // ============================================================
+    // AUTO-REFRESH community data
+    // ============================================================
+    function updateCommunityUI(data) {
+      const pct = Math.min(Math.round((data.total / data.goal) * 100), 100);
+      const el = document.getElementById('total-counter');
+      if (el) animateCounter(el, data.total, 800);
+      const f = document.getElementById('progress-fill');
+      if (f) f.style.width = pct + '%';
+      const p = document.getElementById('progress-pct');
+      if (p) p.textContent = pct + '%';
+      const d = document.getElementById('progress-dot');
+      if (d) d.style.left = `calc(${pct}% - 7px)`;
+      const st = document.getElementById('stat-total');
+      if (st) animateCounter(st, data.total, 800);
+      const sp = document.getElementById('stat-participants');
+      if (sp) sp.textContent = data.participants || 0;
+      const spc = document.getElementById('stat-pct');
+      if (spc) spc.textContent = pct + '%';
     }
-  });
 
-  // Reset
-  document.getElementById('btn-reset')?.addEventListener('click', () => {
-    if (confirm('Reset your accumulated local count to 0?')) {
-      setLocalCount(0);
-      updateLocalUI(0);
-      showToast('Local count reset! 🔄');
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      // AUTO-REFRESH uses CSV (Google CDN) — UNLIMITED reads, zero Apps Script quota
+      refreshTimer = setInterval(async () => {
+        const data = await fetchTotalFromCSV();
+        if (data) updateCommunityUI(data);
+      }, CONFIG.REFRESH_INTERVAL);
     }
-  });
 
-  // Admin
-  document.getElementById('btn-admin-set')?.addEventListener('click', async () => {
-    const code = document.getElementById('inp-admin-code')?.value;
-    const total = parseInt(document.getElementById('inp-admin-total')?.value);
-    const status = document.getElementById('admin-status');
-    if (!code) { showToast('Enter admin code', 'error'); return; }
-    if (isNaN(total) || total < 0) { showToast('Enter valid total', 'error'); return; }
-    if (status) status.textContent = 'Sending...';
-    const result = await adminSetTotal(code, total);
-    if (result.error) {
-      if (status) status.textContent = '❌ ' + result.error;
-      showToast(result.error, 'error');
-    } else {
-      if (status) status.textContent = '✅ Total updated to ' + formatIndianNumber(total);
-      showToast('Total updated! 🙏');
-      await fetchCommunityData();
+    // ============================================================
+    // INIT
+    // ============================================================
+    (async function init() {
+      // Render immediately with defaults / cache
       render();
-    }
-  });
-}
 
-function updateLocalUI(count) {
-  const el = document.getElementById('local-count');
-  if (el) el.textContent = formatIndianNumber(count);
-  const btn = document.getElementById('btn-submit');
-  if (btn) {
-    btn.disabled = count === 0;
-    btn.textContent = `🙏 Submit My Count (${formatIndianNumber(count)})`;
-  }
-  const resetBtn = document.getElementById('btn-reset');
-  if (resetBtn) resetBtn.style.display = count === 0 ? 'none' : '';
-}
+      // Fetch full data from Apps Script (1 call per user on page load)
+      // This gets total + recent submissions + participant count
+      const data = await fetchFullDataFromAppsScript();
+      if (data) updateCommunityUI(data);
 
-// ============================================================
-// AUTO-REFRESH community data
-// ============================================================
-function updateCommunityUI(data) {
-  const pct = Math.min(Math.round((data.total / data.goal) * 100), 100);
-  const el = document.getElementById('total-counter');
-  if (el) animateCounter(el, data.total, 800);
-  const f = document.getElementById('progress-fill');
-  if (f) f.style.width = pct + '%';
-  const p = document.getElementById('progress-pct');
-  if (p) p.textContent = pct + '%';
-  const d = document.getElementById('progress-dot');
-  if (d) d.style.left = `calc(${pct}% - 7px)`;
-  const st = document.getElementById('stat-total');
-  if (st) animateCounter(st, data.total, 800);
-  const sp = document.getElementById('stat-participants');
-  if (sp) sp.textContent = data.participants || 0;
-  const spc = document.getElementById('stat-pct');
-  if (spc) spc.textContent = pct + '%';
-}
+      // After initial load, full-render with server data
+      render();
 
-function startAutoRefresh() {
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(async () => {
-    const data = await fetchCommunityData();
-    if (data) updateCommunityUI(data);
-  }, CONFIG.REFRESH_INTERVAL);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-(async function init() {
-  // Render immediately with defaults / cache
-  render();
-
-  // Then fetch real data
-  const data = await fetchCommunityData();
-  if (data) updateCommunityUI(data);
-
-  // Start auto-refresh
-  startAutoRefresh();
-})();
-</script>
+      // Start auto-refresh via CSV (unlimited, no quota issues)
+      startAutoRefresh();
+    })();
+  </script>
 </body>
+
 </html>
