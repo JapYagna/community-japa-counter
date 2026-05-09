@@ -1121,23 +1121,35 @@
     }
 
     // ============================================================
-    // DATA FETCHING — Hybrid strategy for unlimited scale
+    // DATA FETCHING — 100% QUOTA-PROOF ARCHITECTURE (v3)
     //
-    // QUOTA-PROOF DESIGN:
-    //   Auto-refresh (every 30s) → Google Sheets Published CSV (Google CDN, UNLIMITED)
-    //   Page load & after submit → Apps Script (full data with recent list)
-    //   Admin operations → Apps Script (rare, admin-only)
+    // ZERO Apps Script calls for normal users!
     //
-    // With 150K users refreshing every 30s:
-    //   CSV reads: unlimited (Google CDN, not counted as API calls)
-    //   Apps Script: ~150K calls on page load + ~few K after submits = well within 20K-50K/day
-    //               (most users load once, submit 1-3 times, done)
+    //   Page load      → CSV only (Google CDN, UNLIMITED)
+    //   Auto-refresh   → CSV only (Google CDN, UNLIMITED)
+    //   After submit   → Optimistic UI update + next CSV refresh syncs
+    //   Admin only     → Apps Script (rare, ~10 calls/day)
+    //
+    // Summary sheet CSV layout:
+    //   Row 1: Form Total        | <sum formula>
+    //   Row 2: Admin Override    | <number>
+    //   Row 3: Event Name        | Ram Jap
+    //   Row 4: Goal              | 10000000
+    //   Row 5: Participants      | <countunique formula>
+    //   Row 6: Total Submissions | <counta formula>
+    //
+    // Math proof (worst case 150K users, 27 chants/submit):
+    //   1,00,00,000 / 27 = 3,70,370 submissions
+    //   Apps Script calls needed: 0 (all CSV!)
+    //   Admin calls: ~10/day
+    //   Result: TRULY UNLIMITED ✅
     // ============================================================
     let cachedData = null;
 
     /**
-     * LIGHTWEIGHT: Read total from published CSV (unlimited, Google CDN)
-     * Only gets the total + override — no Apps Script quota used!
+     * PRIMARY DATA SOURCE: Published CSV (unlimited, Google CDN)
+     * Reads ALL data from Summary sheet — total, override, event name, goal, participants, submissions
+     * This is the ONLY data source for normal users. Zero Apps Script quota.
      */
     async function fetchTotalFromCSV() {
       try {
@@ -1146,33 +1158,49 @@
         const text = await r.text();
         // Parse CSV — clean \r\n line endings from Google Sheets
         const rows = text.trim().replace(/\r/g, '').split('\n').map(row => row.split(',').map(c => c.trim()));
-        let formTotal = 0, override = 0;
+
+        // Parse by labels first, then positional fallback
+        let formTotal = 0, override = 0, eventName = '', goal = 0, participants = 0, totalSubmissions = 0;
         for (const row of rows) {
           const label = (row[0] || '').toLowerCase();
-          const val = Number(row[1]) || 0;
-          if (label.includes('form total')) formTotal = val;
-          if (label.includes('admin override')) override = val;
+          const val = row[1] || '';
+          if (label.includes('form total'))        formTotal = Number(val) || 0;
+          if (label.includes('admin override'))     override = Number(val) || 0;
+          if (label.includes('event name'))         eventName = val || '';
+          if (label.includes('goal'))               goal = Number(val) || 0;
+          if (label.includes('participants') || label.includes('devotees'))  participants = Number(val) || 0;
+          if (label.includes('total submissions') || label.includes('entries'))  totalSubmissions = Number(val) || 0;
         }
-        // Fallback: positional parse if labels didn't match
-        if (formTotal === 0 && rows.length >= 1) formTotal = Number(rows[0][1]) || 0;
-        if (override === 0 && rows.length >= 2) override = Number(rows[1][1]) || 0;
+        // Positional fallback (row index)
+        if (formTotal === 0 && rows.length >= 1)      formTotal = Number(rows[0][1]) || 0;
+        if (override === 0 && rows.length >= 2)        override = Number(rows[1][1]) || 0;
+        if (!eventName && rows.length >= 3)            eventName = rows[2][1] || '';
+        if (goal === 0 && rows.length >= 4)            goal = Number(rows[3][1]) || 0;
+        if (participants === 0 && rows.length >= 5)    participants = Number(rows[4][1]) || 0;
+        if (totalSubmissions === 0 && rows.length >= 6) totalSubmissions = Number(rows[5][1]) || 0;
+
         const total = Math.max(0, formTotal + override);
-        // Merge with cached data (keep recent list and participants from last Apps Script call)
-        if (cachedData) {
-          cachedData.total = total;
-        } else {
-          cachedData = { total, goal: CONFIG.GOAL, recent: [], participants: 0 };
-        }
+
+        cachedData = {
+          total,
+          formTotal,
+          override,
+          goal: goal || CONFIG.GOAL,
+          eventName: eventName || 'Community Japa',
+          participants,
+          totalSubmissions,
+          recent: cachedData?.recent || [], // recent stays from local history
+        };
         return cachedData;
       } catch (e) {
         console.error('CSV fetch error:', e);
-        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
+        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0, eventName: 'Community Japa' };
       }
     }
 
     /**
-     * FULL: Read all data from Apps Script (total + recent + participants)
-     * Used on page load and after submit — consumes Apps Script quota
+     * ADMIN ONLY: Apps Script calls. Never used by normal users.
+     * Only called when admin panel actions are triggered.
      */
     async function fetchFullDataFromAppsScript() {
       try {
@@ -1183,19 +1211,38 @@
         return data;
       } catch (e) {
         console.error('Apps Script fetch error:', e);
-        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
+        return cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0, eventName: 'Community Japa' };
       }
     }
 
+    // Admin API functions
     async function adminSetTotal(code, total) {
       try {
         const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=setTotal&adminCode=' + encodeURIComponent(code) + '&total=' + total + '&t=' + Date.now());
-        const data = await r.json();
-        return data;
-      } catch (e) {
-        console.error('Admin set total error:', e);
-        return { error: 'Network error' };
-      }
+        return await r.json();
+      } catch (e) { return { error: 'Network error' }; }
+    }
+
+    async function adminResetOverride(code) {
+      try {
+        const r = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=resetOverride&adminCode=' + encodeURIComponent(code) + '&t=' + Date.now());
+        return await r.json();
+      } catch (e) { return { error: 'Network error' }; }
+    }
+
+    async function adminSetConfig(code, eventName, goal) {
+      let url = CONFIG.APPS_SCRIPT_URL + '?action=setConfig&adminCode=' + encodeURIComponent(code);
+      if (eventName) url += '&eventName=' + encodeURIComponent(eventName);
+      if (goal) url += '&goal=' + goal;
+      url += '&t=' + Date.now();
+      try {
+        const r = await fetch(url);
+        return await r.json();
+      } catch (e) { return { error: 'Network error' }; }
+    }
+
+    function getExportURL(code) {
+      return CONFIG.APPS_SCRIPT_URL + '?action=exportData&adminCode=' + encodeURIComponent(code);
     }
 
     // ============================================================
@@ -1213,16 +1260,21 @@
       const god = rand(godQuotes);
       const warning = rand(funnyWarnings);
       const timeG = getTimeGreeting();
-      const data = cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0 };
-      const pct = Math.min(Math.round((data.total / data.goal) * 100), 100);
-      const goalReached = data.total >= data.goal;
+      const data = cachedData || { total: 0, goal: CONFIG.GOAL, recent: [], participants: 0, eventName: 'Community Japa' };
+      const pct = Math.min(Math.round((data.total / (data.goal || CONFIG.GOAL)) * 100), 100);
+      const goalReached = data.total >= (data.goal || CONFIG.GOAL);
       const userName = getUserName();
       const isLoading = !dataLoaded;
+      const eventName = data.eventName || 'Community Japa';
+      // Split event name for branding: first word normal, rest accented
+      const nameParts = eventName.split(' ');
+      const brandMain = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
+      const brandAccent = nameParts.length > 1 ? nameParts[nameParts.length - 1] : eventName;
 
       app.innerHTML = `<div class="animate-in">
     <nav class="navbar">
       <div>
-        <div class="nav-brand">Community <span class="brand-accent">Japa</span></div>
+        <div class="nav-brand">${brandMain ? brandMain + ' ' : ''}<span class="brand-accent">${brandAccent}</span></div>
         <p class="nav-subtitle">The Collective Chanting Initiative — GitHub Pages Edition</p>
       </div>
     </nav>
@@ -1286,7 +1338,7 @@
                   ? '<span class="counter-value loading-shimmer" style="width:200px;height:60px">&nbsp;</span>'
                   : `<span class="counter-value" id="total-counter">${formatIndianNumber(data.total)}</span>`
                 }
-                <span class="counter-target">/ ${formatIndianNumber(data.goal)}</span>
+                <span class="counter-target">/ ${formatIndianNumber(data.goal || CONFIG.GOAL)}</span>
               </div>
               <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill" style="width:${pct}%"></div>
@@ -1294,7 +1346,7 @@
               </div>
               <div class="progress-info">
                 <span class="progress-pct" id="progress-pct">${pct}%</span>
-                <span class="progress-goal">Goal: ${formatIndianNumber(data.goal)}</span>
+                <span class="progress-goal">Goal: ${formatIndianNumber(data.goal || CONFIG.GOAL)}</span>
               </div>
               ${goalReached ? '<p style="color:var(--color-primary);font-weight:600;margin-top:16px;font-style:italic">🎯 GOAL ACHIEVED! 🎉</p>' : ''}
             </div>
@@ -1307,19 +1359,17 @@
           </div>
 
           <div class="card">
-            <p class="card-header">Recent Submissions</p>
+            <p class="card-header">📜 Your Submissions (this device)</p>
             <div class="recent-list" id="recent-list">
-              ${isLoading
-                ? '<p class="loading-text" style="text-align:center;padding:20px">🙏 Loading community data...</p>'
-                : (data.recent && data.recent.length > 0 ? data.recent.map(r => `
+              ${getSubmitHistory().length > 0 ? getSubmitHistory().map(h => `
                 <div class="recent-item">
                   <div>
-                    <span>${r.name || 'Sadhak'}</span>
-                    <span style="display:block;font-size:0.75rem;opacity:0.4">${r.time || ''}</span>
+                    <span>${h.name || 'Sadhak'}</span>
+                    <span style="display:block;font-size:0.75rem;opacity:0.4">${h.time || ''}</span>
                   </div>
-                  <span class="count-cell">${formatIndianNumber(r.count)}</span>
+                  <span class="count-cell">${formatIndianNumber(h.count)}</span>
                 </div>
-              `).join('') : '<p class="empty-msg">No submissions yet. Be the first! 🙏</p>')}
+              `).join('') : '<p class="empty-msg">No submissions yet. Add chants and submit! 🙏</p>'}
             </div>
           </div>
 
@@ -1338,19 +1388,7 @@
         </div>
       </div>
 
-      <!-- LOCAL SUBMISSION HISTORY -->
-      ${getSubmitHistory().length > 0 ? `
-      <div class="card" style="margin-top:24px">
-        <p class="card-header">📜 Your Submission History (this device)</p>
-        <div class="recent-list">
-          ${getSubmitHistory().map(h => `
-            <div class="recent-item">
-              <span style="font-size:0.82rem;opacity:0.5">${h.time}</span>
-              <span class="count-cell">${formatIndianNumber(h.count)}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>` : ''}
+
 
       <!-- ADMIN PANEL (hidden unless ?admin in URL) -->
       ${isAdmin ? `
@@ -1362,11 +1400,23 @@
           <div class="admin-info-grid">
             <div class="admin-info-item">
               <div class="admin-info-val">${formatIndianNumber(data.total)}</div>
-              <div class="admin-info-label">Total (Form + Override)</div>
+              <div class="admin-info-label">Total (Combined)</div>
+            </div>
+            <div class="admin-info-item">
+              <div class="admin-info-val">${formatIndianNumber(data.formTotal || 0)}</div>
+              <div class="admin-info-label">Form Submissions</div>
+            </div>
+            <div class="admin-info-item">
+              <div class="admin-info-val">${formatIndianNumber(data.override || 0)}</div>
+              <div class="admin-info-label">Admin Override</div>
             </div>
             <div class="admin-info-item">
               <div class="admin-info-val">${data.participants || 0}</div>
-              <div class="admin-info-label">Participants</div>
+              <div class="admin-info-label">Unique Devotees</div>
+            </div>
+            <div class="admin-info-item">
+              <div class="admin-info-val">${data.totalSubmissions || 0}</div>
+              <div class="admin-info-label">Total Entries</div>
             </div>
             <div class="admin-info-item">
               <div class="admin-info-val">${pct}%</div>
@@ -1379,7 +1429,7 @@
         <div class="admin-section">
           <p style="font-family:var(--font-sans);font-size:0.82rem;font-weight:600;margin-bottom:4px">✏️ Set Community Total</p>
           <p style="font-family:var(--font-sans);font-size:0.78rem;opacity:0.5;margin-bottom:10px">
-            Sets the override so Form Total + Override = your desired total.
+            Override = desired total − form submissions total.
           </p>
           <div class="admin-row">
             <input type="password" id="inp-admin-code" placeholder="Admin Secret Code" />
@@ -1391,11 +1441,35 @@
         <div class="admin-section">
           <p style="font-family:var(--font-sans);font-size:0.82rem;font-weight:600;margin-bottom:4px">🗑️ Reset Override to Zero</p>
           <p style="font-family:var(--font-sans);font-size:0.78rem;opacity:0.5;margin-bottom:10px">
-            Removes admin override — total will equal only form submissions.
+            Sets admin override = 0. Total becomes form-only submissions.
           </p>
           <div class="admin-row">
             <input type="password" id="inp-admin-reset-code" placeholder="Admin Secret Code" />
             <button class="btn btn-outline btn-sm" id="btn-admin-reset-override" style="color:var(--color-danger);border-color:var(--color-danger)">Reset Override</button>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <p style="font-family:var(--font-sans);font-size:0.82rem;font-weight:600;margin-bottom:4px">🎯 Event Configuration</p>
+          <p style="font-family:var(--font-sans);font-size:0.78rem;opacity:0.5;margin-bottom:10px">
+            Current event: <strong>${eventName}</strong> | Goal: <strong>${formatIndianNumber(data.goal || CONFIG.GOAL)}</strong>
+          </p>
+          <div class="admin-row">
+            <input type="password" id="inp-admin-config-code" placeholder="Admin Secret Code" />
+            <input type="text" id="inp-admin-event-name" placeholder="Event Name (e.g. Ram Jap)" value="${eventName}" />
+            <input type="number" id="inp-admin-goal" placeholder="Goal" min="1" value="${data.goal || CONFIG.GOAL}" />
+            <button class="btn btn-primary btn-sm" id="btn-admin-set-config">Update Config</button>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <p style="font-family:var(--font-sans);font-size:0.82rem;font-weight:600;margin-bottom:4px">📥 Download Data</p>
+          <p style="font-family:var(--font-sans);font-size:0.78rem;opacity:0.5;margin-bottom:10px">
+            Export all form submissions as CSV file.
+          </p>
+          <div class="admin-row">
+            <input type="password" id="inp-admin-export-code" placeholder="Admin Secret Code" />
+            <button class="btn btn-outline btn-sm" id="btn-admin-export">📥 Download CSV</button>
           </div>
         </div>
 
@@ -1481,12 +1555,13 @@
           const q = rand(godQuotes);
           showToast(`${formatIndianNumber(count)} chants offered! ${q.emoji} — ${getDeityPrefix(q.deity)} ${q.deity} blesses you!`);
 
-          // Wait then refresh full data (gets updated recent list)
-          setTimeout(async () => {
-            await fetchFullDataFromAppsScript();
-            isSubmitting = false;
-            render();
-          }, 3000);
+          // OPTIMISTIC UI: immediately show the updated total (no Apps Script call!)
+          // The next CSV auto-refresh will sync the real number from the sheet
+          if (cachedData) {
+            cachedData.total = (cachedData.total || 0) + count;
+          }
+          isSubmitting = false;
+          render();
         } else {
           isSubmitting = false;
           showToast('Submission may have failed. Try again? 🙏', 'error');
@@ -1518,35 +1593,60 @@
           if (status) status.textContent = '❌ ' + result.error;
           showToast(result.error, 'error');
         } else {
-          if (status) status.textContent = '✅ Total updated to ' + formatIndianNumber(total);
+          if (status) status.textContent = '✅ Total: ' + formatIndianNumber(result.total) + ' (override: ' + formatIndianNumber(result.override) + ')';
           showToast('Total updated! 🙏');
           await fetchFullDataFromAppsScript();
           render();
         }
       });
 
-      // Admin — Reset Override
+      // Admin — Reset Override (calls dedicated endpoint)
       document.getElementById('btn-admin-reset-override')?.addEventListener('click', async () => {
         const code = document.getElementById('inp-admin-reset-code')?.value;
         const status = document.getElementById('admin-status');
         if (!code) { showToast('Enter admin code', 'error'); return; }
-        if (!confirm('Are you sure? This will reset the admin override to 0. Total will equal only form submissions.')) return;
+        if (!confirm('Reset admin override to 0? Total will become form-only submissions.')) return;
         if (status) status.textContent = '⏳ Resetting override...';
-        // Setting total to the current form-only total (which means override = 0)
-        const currentData = await fetchFullDataFromAppsScript();
-        const formOnlyTotal = (currentData?.total || 0); // Simplest: just set total to current form sum
-        // We need to set override to 0. The Apps Script calculates: override = desiredTotal - formTotal
-        // So if we set total = formTotal from Summary B1, the override becomes 0.
-        const result = await adminSetTotal(code, formOnlyTotal);
+        const result = await adminResetOverride(code);
         if (result.error) {
           if (status) status.textContent = '❌ ' + result.error;
           showToast(result.error, 'error');
         } else {
-          if (status) status.textContent = '✅ Override reset. Total is now form-only total.';
-          showToast('Override reset! 🔄');
+          if (status) status.textContent = '✅ Override reset! Total now: ' + formatIndianNumber(result.formTotal);
+          showToast('Override reset to 0! 🔄');
           await fetchFullDataFromAppsScript();
           render();
         }
+      });
+
+      // Admin — Set Config (event name + goal)
+      document.getElementById('btn-admin-set-config')?.addEventListener('click', async () => {
+        const code = document.getElementById('inp-admin-config-code')?.value;
+        const eventName = document.getElementById('inp-admin-event-name')?.value;
+        const goal = document.getElementById('inp-admin-goal')?.value;
+        const status = document.getElementById('admin-status');
+        if (!code) { showToast('Enter admin code', 'error'); return; }
+        if (!eventName && !goal) { showToast('Enter event name or goal', 'error'); return; }
+        if (status) status.textContent = '⏳ Updating config...';
+        const result = await adminSetConfig(code, eventName, goal);
+        if (result.error) {
+          if (status) status.textContent = '❌ ' + result.error;
+          showToast(result.error, 'error');
+        } else {
+          if (status) status.textContent = '✅ Event: ' + result.eventName + ' | Goal: ' + formatIndianNumber(result.goal);
+          showToast('Config updated! Page will refresh... 🙏');
+          await fetchFullDataFromAppsScript();
+          render();
+        }
+      });
+
+      // Admin — Download Data
+      document.getElementById('btn-admin-export')?.addEventListener('click', () => {
+        const code = document.getElementById('inp-admin-export-code')?.value;
+        if (!code) { showToast('Enter admin code', 'error'); return; }
+        const url = getExportURL(code);
+        window.open(url, '_blank');
+        showToast('Download started... 📥');
       });
 
       // Admin — Refresh Data
@@ -1605,15 +1705,15 @@
     // INIT
     // ============================================================
     (async function init() {
-      // Render immediately with loading state (dataLoaded = false)
+      // Render immediately with loading shimmer (dataLoaded = false)
       render();
 
-      // Fetch full data from Apps Script (1 call per user on page load)
-      const data = await fetchFullDataFromAppsScript();
+      // Fetch ALL data from CSV (UNLIMITED, Google CDN — zero Apps Script quota)
+      const data = await fetchTotalFromCSV();
       dataLoaded = true; // removes loading shimmer on next render
       if (data) updateCommunityUI(data);
 
-      // Re-render with real data (replaces loading skeletons)
+      // Re-render with real data
       render();
 
       // Start auto-refresh via CSV (unlimited, no quota issues)
