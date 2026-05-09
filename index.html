@@ -1194,15 +1194,14 @@
 
         const csvTotal = Math.max(0, formTotal + override);
 
-        // PROTECT OPTIMISTIC UPDATE: If we just submitted (within last 10s),
-        // don't let a stale CSV response overwrite the optimistic total.
-        // The CSV CDN can be up to 5 min stale, so the old total would
-        // clobber our optimistic update and cause the "jumps up then drops" glitch.
-        const now = Date.now();
-        const isOptimisticWindow = (now - lastOptimisticTime) < 10000;
-        const useTotal = (isOptimisticWindow && cachedData && cachedData.total > csvTotal)
-          ? cachedData.total  // keep optimistic total until CSV catches up
-          : csvTotal;         // CSV is newer or equal, use it
+        // CORE RULE: In a Japa counter, auto-refresh totals can ONLY go up.
+        // If the CSV returns a lower number than what we're currently showing,
+        // it means Google's CDN is still serving stale cached data (up to 5 min).
+        // We simply keep the higher value until the CDN catches up.
+        //
+        // Admin actions (nuke, reset) bypass this because they use
+        // fetchFullDataFromAppsScript() which sets cachedData directly.
+        const useTotal = Math.max(cachedData?.total || 0, csvTotal);
 
         cachedData = {
           total: useTotal,
